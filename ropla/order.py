@@ -86,7 +86,7 @@ class ParentItem(Item):
         self.buildable: bool = True
         self.ready_time: str = ""
         self.manu_time: int = 0
-
+        self.late_item = ""
         self.load_BOM()
 
     #Load BOM
