@@ -1,0 +1,45 @@
+  
+<div class="table-responsive">
+    <table class="table table-sm mb-0">
+        <thead class="thead-dark">
+          <tr>
+            <form action="{{ url_for(function_name)}}" class="query" method="POST">
+              <th><input class="input is-large" type="text" name="query1" placeholder="" method="GET"autofocus=""></th>
+              <th>
+                <input class="input is-large" type="text" name="query2" placeholder="{{param2}}" method="GET"autofocus="">
+              </th>
+              <th>
+                <input class="input is-large" type="text" name="query3" placeholder="" method="GET"autofocus="">
+              </th>
+              <th></th>
+              <th></th>
+              <th>
+                <input class="input is-large" type="text" name="query4" placeholder="" method="GET"autofocus="">
+              </th>
+              <th><input class="btn btn-default" type="submit" value="Filter"></th>
+          </form> 
+        </tr>
+            <tr>
+                <th>Sold To</th>
+                <th>Order #</th>
+                <th>Item</th>
+                <th>Description</th>
+                <th>Order Quantity</th>
+                <th>Hold Code</th>
+                <th>Ready Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in table.items %}
+            <tr>
+                <td>{{ row.sold_to }}</td>
+                <td>{{ row.order_number }}</td>
+                <td>{{ row.item }}</td>
+                <td>{{ row.concatenation_description }}</td>
+                <td>{{ row.quantity_shipped }}</td>
+                <td>{{ row.hold_orders_code }}</td>
+                <td>{{ row.ready_date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>

@@ -49,17 +49,17 @@ class Item:
         self.cbm = ""
         self.purchase_leadtime: timedelta = timedelta(days=105)
         self.queue_position: int = None
-        self.consumption_position: int = None
-        self.available_quantity: int = None
+        self.consumption_position: int = 0
+        self.available_quantity: int = 0
 
     def check_inventory(self, conn):
 
         # FETCH ITEM AVAILABLE QUANTITY FROM DATA BASE, GENERATING NEW DATABASE LINE IF NOT FOUND
-        cursor = conn.execute(f'SELECT "synapse_quantity_allocable" FROM inventory WHERE item="{self.item_number}"')
+        cursor = conn.execute(f'SELECT "synapse_allocable_quantity" FROM inventory WHERE item="{self.item_number}"')
         try:
             self.available_quantity = cursor.fetchone()[0]
         except TypeError:
-            conn.execute(f'INSERT INTO inventory (item, "synapse_quantity_allocable", "quantity_consumed") VALUES ("{self.item_number}", 0, 0)')
+            conn.execute(f'INSERT INTO inventory (item, "synapse_allocable_quantity", "quantity_consumed") VALUES ("{self.item_number}", 0, 0)')
             conn.commit()
             self.available_quantity = 0
 
@@ -68,15 +68,12 @@ class Item:
         try:
             self.consumption_position = cursor.fetchone()[0]
         except TypeError:
-            conn.execute(f'INSERT INTO inventory (item, "synapse_quantity_allocable", "quantity_consumed") VALUES ("{self.item_number}", 0, 0)')
+            conn.execute(f'INSERT INTO inventory (item, "synapse_allocable_quantity", "quantity_consumed") VALUES ("{self.item_number}", 0, 0)')
             conn.commit()
             self.consumption_position = 0
         
         return self.available_quantity - self.consumption_position
             
-
-
-
 
 class ParentItem(Item):
     def __init__(self, item_number: str) -> None:

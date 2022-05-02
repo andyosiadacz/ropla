@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+{% block title %}{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">
+      <img src={{ url_for('static', filename='logo.svg') }} alt="" width="30" height="24">  
+      Ropla</a>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="margin: 10% 20%;">
+  <div class="card-body">
+    <div class="card" style="display: {{login_incorrect}}; background-color: red;" style="margin: 4% 8%">
+      <div class="card-body">
+        Username and/or password incorrect.
+      </div>
+    </div>
+    {{ wtf.quick_form(form, novalidate=True) }}
+  </div>
+</div>
+
+{% endblock %}

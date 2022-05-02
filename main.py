@@ -10,10 +10,13 @@ REPORT_TIME = dt.datetime.today()
 START_TIME = time.time()
 
 def update_database():
+
     running  = True
 
-    def update_db(file_path, target_table):
-        df = pd.read_csv(file_path)
+    def update_db(csv_file_path, target_table):
+        """Takes a .csv file and a target SQLAlchemy table and replaces db table"""
+
+        df = pd.read_csv(csv_file_path)
         engine = create_engine('sqlite:///ropla.db')
         with engine.begin() as connection:
             df.to_sql(target_table, con=connection, if_exists='replace')
@@ -65,9 +68,7 @@ def update_database():
     conn.commit()
     conn.close()
 
-
-
-# For item in bom, calc availability based on queue position, quantity available, then purchase_lead_time, then_manufacturing_time
+# For item in BOM, calculate availability based on queue position, quantity available, then purchase_lead_time, then_manufacturing_time
 def calculate_leadtime(parent_item: ParentItem):
     global REPORT_TIME
 
@@ -79,9 +80,8 @@ def calculate_leadtime(parent_item: ParentItem):
 
     conn = sqlite3.connect('ropla.db')
 
-    # CHECK IF PARENT HAS BOM ENTRY, ELSE CHECK INVENTORY FOR PARENT
-    #TODO: INCLUDE STOCKING TYPE OF PARENT AND FLAG UPDATE FOR OUTDATED KITS
 
+    # CHECK IF PARENT HAS BOM ENTRY, ELSE CHECK INVENTORY FOR PARENT
     if parent_item.bom != []:
         for item in parent_item.bom:
             item_no = item['item'].item_number
@@ -122,10 +122,12 @@ def calculate_leadtime(parent_item: ParentItem):
         if parent_item.check_inventory(conn) - parent_item.quantity < 0 and parent_item.stocking_type == "S":
             parent_item.buildable = False
             parent_leadtime = REPORT_TIME + parent_item.purchase_leadtime
+
         elif parent_item.stocking_type == "K":
             parent_item.buildable = False
             conn.close()
             return "OBSOLETE KIT"
+
 
     if parent_leadtime < REPORT_TIME:
         parent_leadtime = "TBD"
@@ -137,6 +139,18 @@ def calculate_leadtime(parent_item: ParentItem):
 
     #IF ITEM IS BUILDABLE, UPDATE CONSUMPTION
     if parent_item.buildable:
+        if parent_item.bom == []:
+            item_no = parent_item.item_number
+
+            cursor = conn.execute(f'SELECT "quantity_consumed" FROM "inventory" WHERE "item"="{item_no}"')
+            try:
+                parent_item.consumption_position = cursor.fetchone()[0] + parent_item.quantity
+                conn.execute(f'UPDATE inventory set "quantity_consumed" = "{parent_item.consumption_position}" WHERE item = "{item_no}"')
+            except TypeError:
+                conn.execute(f'INSERT INTO inventory (ITEM, "synapse_quantity_allocable", "quantity_consumed") VALUES ("{item_no}", 0, 0)')
+                item['item'].consumption_position = cursor.fetchone()[0] + item['kit quantity']
+                conn.execute(f'UPDATE inventory set "quantity_consumed" = "{parent_item.consumption_position}" WHERE item = "{item_no}"')
+
         for item in parent_item.bom:
             item_no = item['item'].item_number
 
@@ -149,6 +163,7 @@ def calculate_leadtime(parent_item: ParentItem):
                 item['item'].consumption_position = cursor.fetchone()[0] + item['kit quantity']
                 conn.execute(f'UPDATE inventory set "quantity_consumed" = "{item["item"].consumption_position}" WHERE item = "{item_no}"')
 
+            
     conn.commit()
     conn.close()
 
@@ -159,7 +174,7 @@ def update_order_leadtimes():
     conn = sqlite3.connect('ropla.db')
 
     conn.execute('UPDATE inventory SET quantity_consumed=0')
-    cursor = conn.execute(f'SELECT "index", "item", "Quantity_Shipped", "stocking_type" FROM order_detail')
+    cursor = conn.execute(f'SELECT "index", "item", "quantity_shipped", "stocking_type" FROM order_detail')
 
     orders = cursor.fetchall()
     
@@ -181,7 +196,7 @@ def update_order_leadtimes():
         parent_item.quantity = order_line[2]
         parent_item.stocking_type = order_line[3]
         parent_item.ready_time = calculate_leadtime(parent_item)
-        updates.append((index, parent_item.ready_time, parent_item.buildable, parent_item.late_item))
+        updates.append(index, parent_item.ready_time, parent_item.buildable, parent_item.late_item)
         record_number += 1
 
         # DISPLAY OPERATION PROGRESS

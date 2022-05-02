@@ -5,9 +5,9 @@ REPORT_TIME = datetime.datetime.today()
 
 def generate_build_today():
 
-    conn = sqlite3.connect('main.db')
+    conn = sqlite3.connect('ropla.db')
 
-    df = pandas.read_sql('SELECT * FROM order_detail_file WHERE buildable = TRUE', conn)
+    df = pandas.read_sql('SELECT * FROM order_detail WHERE buildable = TRUE', conn)
 
     conn.close()
 
@@ -28,9 +28,9 @@ def generate_build_today():
 
 def generate_OOR():
 
-    conn = sqlite3.connect('main.db')
+    conn = sqlite3.connect('ropla.db')
 
-    df = pandas.read_sql('SELECT * FROM order_detail_file', conn)
+    df = pandas.read_sql('SELECT * FROM order_detail', conn)
 
     conn.close()
 
