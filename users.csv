@@ -1,4 +1,0 @@
-﻿id,email,password,role,permission_level,first_name,preferred_name,last_name
-001,aosiadacz@unitedwheels.com,12345,Administrator,2,Andrew,Andy,Osiadacz
-002,wbrewer@unitedwheels.com,radniner,User,1,,,
-003,samanthadayak@gmail.com,chammy,Troll,0,Samantha,Chammy,Dayak
